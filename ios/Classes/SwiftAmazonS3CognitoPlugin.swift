@@ -29,11 +29,67 @@ private static  var imageUploadStreamHandler = ImageUploadStreamHandler()
               deleteImage(call,result: result)
           }else if(call.method.elementsEqual("uploadImages")){
             uploadMultipleImages(call,result: result)
-        }
+          } else if(call.method.elementsEqual("upload")) {
+            uploadImage(call,result: result)
+          }
       }
+    
+    func uploadImage(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        
+        let arguments = call.arguments as! NSDictionary
+        
+        let filePath = arguments["filePath"] as! String
+        let contentType = arguments["contentType"] as! String
+        let bucket = arguments["bucket"] as! String
+        let key = arguments["key"] as! String
+        let identityId = arguments["identityId"] as! String
+        let identityToken = arguments["identityToken"] as! String
+        let identityPoolId = arguments["identityPoolId"] as! String
+        let region = arguments["region"] as! String
+        
+        let awsHelper = AwsHelper()
+        
+        let credentials =  CognitoCredentials(
+            identityId: identityId,
+            identityToken: identityToken,
+            identityPoolId: identityPoolId
+        )
+        awsHelper.initTransferUtility(credentials: credentials, region: RegionHelper.getRegion(name: region))
+        
+        guard let transferUtility = awsHelper.getTransferUtility() else {
+            result(FlutterError(code:"TRANSFER_UTILITY_NOT_CREATED", message: "", details: nil))
+            return
+        }
+        
+        
+        
+        let expression = AWSS3TransferUtilityUploadExpression()
+        
+        let uri = URL(string: filePath)
+        
+        var completionHandler: AWSS3TransferUtilityUploadCompletionHandlerBlock
+
+        completionHandler = { (task, error) -> Void in
+            if let error = error {
+                result(FlutterError(code:"UPLOAD_FAILED", message: "", details: error))
+                return
+            } else {
+                result(nil)
+            }
+        }
+        
+      transferUtility.uploadFile(
+            uri!,
+            bucket: bucket,
+            key: key,
+            contentType: contentType,
+            expression: expression,
+            completionHandler: completionHandler
+      )
+    }
 
     func uploadSingleImage(_ call: FlutterMethodCall, result: @escaping FlutterResult){
-              let arguments = call.arguments as? NSDictionary
+        let arguments = call.arguments as? NSDictionary
         let imagePath:String = arguments!["filePath"] as! String
         let bucket:String = arguments!["bucket"] as! String
 

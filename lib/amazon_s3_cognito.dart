@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
-import 'aws_region.dart';
 import 'cognito_credentials.dart';
 
 
@@ -15,12 +14,13 @@ class AmazonS3Cognito {
     return version;
   }
 
-  static Future<String?> upload({
+  static Future<void> upload({
     required CognitoCredentials credentials,
     required File file,
     required String bucket,
     required String key,
     required String region,
+    required String contentType,
   }) async {
     final params = {
       'filePath': file.path,
@@ -30,6 +30,7 @@ class AmazonS3Cognito {
       'identityId': credentials.identityId,
       'identityToken': credentials.identityToken,
       'identityPoolId': credentials.identityPoolId,
+      'contentType': contentType,
     };
 
     return await _channel.invokeMethod('upload', params);
