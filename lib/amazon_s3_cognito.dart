@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 import 'cognito_credentials.dart';
+export 'cognito_credentials.dart';
 
 
 class AmazonS3Cognito {
