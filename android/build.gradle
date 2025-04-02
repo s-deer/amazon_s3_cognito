@@ -27,6 +27,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    if (project.android.hasProperty('namespace')) {
+        namespace "com.famproperties.amazon_s3_cognito"
+    }
     compileSdkVersion 31
 
     compileOptions {
