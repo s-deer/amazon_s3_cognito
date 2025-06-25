@@ -61,31 +61,33 @@ private static  var imageUploadStreamHandler = ImageUploadStreamHandler()
             return
         }
         
-        
-        
         let expression = AWSS3TransferUtilityUploadExpression()
-        
-        let uri = URL(string: filePath)
-        
-        var completionHandler: AWSS3TransferUtilityUploadCompletionHandlerBlock
 
-        completionHandler = { (task, error) -> Void in
-            if let error = error {
-                result(FlutterError(code:"UPLOAD_FAILED", message: "", details: error))
-                return
-            } else {
-                result(nil)
+        if let urlString = filePath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let uri = URL(string: urlString) {
+            
+            var completionHandler: AWSS3TransferUtilityUploadCompletionHandlerBlock
+
+            completionHandler = { (task, error) -> Void in
+                if let error = error {
+                    result(FlutterError(code:"UPLOAD_FAILED", message: "", details: error))
+                    return
+                } else {
+                    result(nil)
+                }
             }
+            
+          transferUtility.uploadFile(
+                uri,
+                bucket: bucket,
+                key: key,
+                contentType: contentType,
+                expression: expression,
+                completionHandler: completionHandler
+          )
+        } else {
+            result(FlutterError(code:"UPLOAD_FAILED", message: "Invalid file path", details: ""))
         }
-        
-      transferUtility.uploadFile(
-            uri!,
-            bucket: bucket,
-            key: key,
-            contentType: contentType,
-            expression: expression,
-            completionHandler: completionHandler
-      )
     }
 
     func uploadSingleImage(_ call: FlutterMethodCall, result: @escaping FlutterResult){
